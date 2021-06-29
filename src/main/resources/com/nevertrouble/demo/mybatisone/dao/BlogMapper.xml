@@ -99,4 +99,114 @@
             - 表名的拼接
             - 排序字段，排序规则
     -->
+
+    <!--
+        动态 SQL
+
+        - if
+        - choose (when otherwise)
+        - trim (where set)
+        - foreach
+
+        in (...)
+        例:
+            in
+            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+
+        批量保存
+
+            <insert>
+                insert into tbl_name(last_name, email, gender)
+                values
+                    <foreach collection="emps" item="emp" separator=",">
+                        (#{emp.lastName}, #{emp.email}, #{emp.gender})
+                    </foreach>
+            </insert>
+
+            特殊的 Oracle
+                1. 使用 多条更新语句放到 begin-end; 中间，需要设置连接 allowMultiQueries=true
+                2. 利用中间表
+
+
+                方式一：
+                    <insert>
+                        <foreach collection="emps" item="emp" open="begin" end="end;">
+                            insert into tbl_name(last_name, email, gender)
+                            values (#{emp.lastName}, #{emp.email}, #{emp.gender});
+                        </foreach>
+                    </insert>
+
+               方式二：
+                    <insert>
+                    insert into tbl_name(last_name, email, gender)
+                        select lastName,email from (
+                            <foreach collection="emps" item="emp" separator="union">
+                                select #{emp.lastName} lastName, #{emp.email} email from dual
+                            </foreach>
+                        )
+                    </insert>
+
+               方式二变种:
+                    <insert>
+                    insert into tbl_name(last_name, email, gender)
+                            <foreach collection="emps" item="emp" separator="union" open="select lastName, email from (" close=")">
+                                select #{emp.lastName} lastName, #{emp.email} email from dual
+                            </foreach>
+                        )
+                    </insert>
+
+    -->
+
+    <!--
+         两个内置参数
+
+         不只是方法传递过来的参数可以被用来判断，取值
+
+         mybatis 默认还有两个内置参数
+         _parameter: 代表整个参数
+                    单个参数: _parameter 就是这个参数
+                    多个参数: 参数会被封装成一个 map，_parameter 就是代表这个 map
+         _databaseId: 如果配置了 databaseIdProvider 标签
+                _databaseId 就是代表了当前数据库
+
+                整个参数不为 null 才加条件
+                <if test="_databaseId=='mysql'">
+                    select * from tbl_employee
+                    <if test="_parameter!=null">
+                        where last_name = #{_parameter.name}
+                    </if>
+                </if>
+
+                <if test="_databaseId=='oracle'">
+                    select * from employee
+                </if>
+     -->
+
+    <!--
+        bind 常用于字符拼接
+
+        <bind name="_lastName" value="'%'+lastName+'%'">
+    -->
+
+
+    <!--
+        抽取可重用的 sql 片段
+
+            1. 经常将要查询的列名或者插入用的列名抽取出来方便引用
+            2. include 来引用已经抽取的 sql
+            3. include 还可以自定义一些 property，sql标签内部就能使用自定义的属性
+                ${prop} 注意这里用的是 $ 不是 #
+
+            <include refid="sql片段标识"></include>
+    -->
+
+    <!--
+
+        <where> 标签可用于去除多余的 and
+        <set> 标签可用于去除多余的 逗号
+
+    -->
+
 </mapper>
