@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--此处的  mybatis-3-mapper.dtd 是 mapper.xml 的约束文件校验其合法性，还有在 idea 中输入的时候的引导-->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--此 mapper.xml 对应的命名空间
+    一个 namespace 对应一个二级缓存
+-->
+<mapper namespace="com.nevertrouble.demo.mybatisone.dao.BlogMapper">
+
+    <!--
+        mybatis 允许增删改查直接定义以下类型的返回值
+
+        - Integer
+        - Long
+        - Boolean
+
+        表明其是否有数据被修改或有多少数据被修改被查询
+    -->
+
+    <!--
+        主键生成问题
+
+        自增主键的获取 mybatis 也是利用 statement.getGeneratedKeys()
+
+        获取自增主键
+            useGeneratedKeys="true" 默认是 false
+            keyProperty="id"        指定对应的主键属性值
+        例:
+            <insert useGeneratedKeys="true" keyProperty="id"/>
+
+        对于 Oracle 不支持自增主键，需要从序列中拿值
+    -->
+
+    <insert id="addBlog" databaseId="oracle">
+        <!-- keyProperty: 查出的主键值封装给 javaBean 的哪个属性
+            order="BEFORE" 当前 sql 在 插入 sql 之前运行
+                  "AFTER" 在之后运行
+         -->
+        <selectKey keyProperty="id" order="BEFORE" resultType="Integer">
+            <!-- 这里是 nextval -->
+            select BLOG_SEQ.nextval from dual;
+        </selectKey>
+        <!-- 插入的时候从序列中拿到的值 -->
+        insert into blog(BLOG_ID, TITLE, CONTENT)
+        values (#{id}, #{title}, #{content})
+    </insert>
+
+    <select id="selectBlog" resultType="com.nevertrouble.demo.mybatisone.bean.Blog">
+    select * from Blog where id = #{id}
+  </select>
+</mapper>
